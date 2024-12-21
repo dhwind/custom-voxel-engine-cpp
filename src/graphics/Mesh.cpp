@@ -10,6 +10,8 @@
 #include "Texture.hpp"
 #include "Mesh.hpp"
 
+#include "../utils/Logger.hpp"
+
 #define VERTEX_POSITIONS_COUNT 5
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, const std::string &spritePath) : vertices(vertices), indices(indices), texture(spritePath)
@@ -23,8 +25,16 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, const std:
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
     glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), this->vertices.data(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(GLuint), this->indices.data(), GL_STATIC_DRAW);
+    if (this->indices.size() > 0)
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(GLuint), this->indices.data(), GL_STATIC_DRAW);
+    }
+    else
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        this->EBO = 0;
+    }
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)0);
     glEnableVertexAttribArray(0); // positions
@@ -50,7 +60,6 @@ void Mesh::draw(GLuint primitive)
 
     if (this->EBO != 0)
     {
-        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
         glDrawElements(primitive, this->indices.size(), GL_UNSIGNED_INT, 0);
     }
     else
@@ -66,7 +75,7 @@ void Mesh::draw()
     this->draw(GL_TRIANGLES);
 }
 
-std::vector<Vertex> get_vertex_data(std::vector<GLfloat> vertexArr)
+std::vector<Vertex> get_vertex_data(const std::vector<GLfloat> &vertexArr)
 {
     std::vector<Vertex> vertexData;
 

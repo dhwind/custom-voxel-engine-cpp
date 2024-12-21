@@ -5,6 +5,8 @@
 #include <vector>
 #include <memory>
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
 #include "Shader.hpp"
@@ -35,6 +37,6 @@ private:
     Texture texture;
 };
 
-extern std::vector<Vertex> get_vertex_data(std::vector<GLfloat> vertexArr);
+extern std::vector<Vertex> get_vertex_data(const std::vector<GLfloat> &vertexArr);
 
 #endif /* GRAPHICS_MESH_HPP */
