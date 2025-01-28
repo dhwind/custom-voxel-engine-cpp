@@ -17,6 +17,9 @@
 #include "window/Camera.hpp"
 #include "utils/Logger.hpp"
 
+#include "voxels/Chunk.hpp"
+#include "graphics/NoiseGenerator.hpp"
+
 int SCREEN_WIDTH = 1200;
 int SCREEN_HEIGHT = 800;
 
@@ -68,17 +71,6 @@ std::vector<GLuint> indices = {
 };
 // clang-format on
 
-glm::vec3 cubePositions[] = {
-    glm::vec3(-1.0f, 0.0f, -1.0f),
-    glm::vec3(0.0f, 0.0f, -1.0f),
-    glm::vec3(1.0f, 0.0f, -1.0f),
-    glm::vec3(-1.0f, 0.0f, 0.0f),
-    glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(1.0f, 0.0f, 0.0f),
-    glm::vec3(-1.0f, 0.0f, 1.0f),
-    glm::vec3(0.0f, 0.0f, 1.0f),
-    glm::vec3(1.0f, 0.0f, 1.0f)};
-
 int main(void)
 {
     Window::initialize(SCREEN_WIDTH, SCREEN_HEIGHT, "InvasionDefender\0");
@@ -86,11 +78,15 @@ int main(void)
 
     std::unique_ptr<Shader> shader = Shader::create("res/shaders/main.vs", "res/shaders/main.fs");
 
-    Mesh cubeMesh = Mesh(get_vertex_data(vertices), indices, "res/textures/blocks/ground.png");
+    NoiseGenerator renderer(1024 * 1024);
+    Chunk *chunk = new Chunk();
+    Mesh *mesh = renderer.render(chunk);
+
+    glm::mat4 model(1.0f);
+    model = glm::translate(model, glm::vec3(0.5f, 0, 0));
 
     while (!Window::shouldClose())
     {
-        Events::pullEvents();
 
         glm::vec3 bgColor = {0.2f, 0.3f, 0.3f};
 
@@ -104,18 +100,13 @@ int main(void)
 
         shader->uniformMatrix("view", view);
         shader->uniformMatrix("projection", projection);
+        shader->uniformMatrix("model", model);
         shader->use();
 
-        for (int i = 0; i < 9; i++)
-        {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-
-            shader->uniformMatrix("model", model);
-            cubeMesh.draw();
-        }
+        mesh->draw();
 
         Window::swapBuffers();
+        Events::pullEvents();
     }
 
     shader->~Shader();
